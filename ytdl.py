@@ -38,7 +38,7 @@ def createFolderStructure():
     if sys.platform == "win32":
         #Create root folder to store all your respective file type folders: C:/Users/$USERNAME/ytdl
         if os.path.isdir(win_path):
-            pass
+            print(f"{win_path} present. Continuing...")
         else:
             os.mkdir(win_path)
 
@@ -47,7 +47,8 @@ def createFolderStructure():
                 os.mkdir(win_path + fol)
                 print("{}{} has been created".format(win_path, fol))
             else:
-               continue
+                print(f"Sub folder {win_path + fol} present. Continuing...")
+                continue
 
     elif sys.platform == "linux":
         #Create root folder to store all your respective file type folders: /home/$user/ytdl
@@ -88,26 +89,6 @@ def downloadVideoHighestQuality(video_link):
         else:
             return "Something went wrong."
 
-def downloadMP3(audio_link):
-    #This function downloads the audio at its highest quality and converts it to MP3
-    link = '"' + str(audio_link) + '"'
-    if sys.platform == "win32":
-        os.system('youtube-dl -i -f bestaudio --no-playlist --extract-audio --audio-format mp3 --audio-quality 0 -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[5], link))
-    elif sys.platform == "linux":
-        os.system('youtube-dl -i -f bestaudio --no-playlist --extract-audio --audio-format mp3 --audio-quality 0 -o "{}/%(title)s.%(ext)s" {}'.format(unix_path + folders[5], link))
-    else:
-        return "Something went wrong."
-
-def downloadWAV(audio_link):
-    #This function downloads the audio at its highest quality and converts it to WAV
-    link = '"' + str(audio_link) + '"'
-    if sys.platform == "win32":
-        os.system('youtube-dl -i -f bestaudio --no-playlist --extract-audio --audio-format wav --audio-quality 0 -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[6], link))
-    elif sys.platform == "linux":
-        os.system('youtube-dl -i -f bestaudio --no-playlist --extract-audio --audio-format wav --audio-quality 0 -o "{}/%(title)s.%(ext)s" {}'.format(unix_path + folders[6], link))
-    else:
-        return "Something went wrong."
-
 def downloadPlaylistAudio(playlist_link):
     #This function downloads a playlist as the highest possible audio quality (can be webm, mp4 or mp3/WAV)
     link = '"' + str(playlist_link) + '"'
@@ -128,62 +109,5 @@ def downloadPlaylistVideo(playlist_link):
     else:
         return "Something went wrong"
 
-def print_menu():       
-    print(30 * "-" , "MENU" , 30 * "-")
-    print("1. Download Audio (HQ)")
-    print("2. Download Video (HQ)")
-    print("3. Download MP3")
-    print("4. Download WAV")
-    print("5. Download Playlist Audio (HQ)")
-    print("6. Download Playlist Video (HQ)")
-    print("0. Exit")
-    print(67 * "-")
-
-if __name__ == "__main__":
-
-    print_menu()
-
-    createFolderStructure()
-
-    loop=True      
-
-    while loop:
-        try:
-            os.system('cls')
-        except:
-            os.system('clear')
-
-        print_menu() 
-        choice = input("Enter your choice [1-5]: ")
-        
-        if choice == '1':     
-            link = input(str("Enter URL: "))
-            downloadAudioHighestQuality(link)
-
-        elif choice == '2':
-            link = input(str("Enter URL: "))
-            downloadVideoHighestQuality(link)    
-
-        elif choice == '3':
-            link = input(str("Enter URL: "))
-            downloadMP3(link)
-            
-        elif choice == '4':
-            link = input(str("Enter URL: "))
-            downloadWAV(link)
-            
-        elif choice == '5':
-            link = input(str("Enter URL: "))
-            downloadPlaylistAudio(link)
-            
-        elif choice == '6':
-            link = input(str("Enter URL: "))
-            downloadPlaylistVideo(link)
-
-        elif choice == '0':
-            loop = False 
-
-        else:
-            input("Wrong option selection. Enter any key to try again..")
 
 

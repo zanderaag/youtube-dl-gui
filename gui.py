@@ -44,9 +44,9 @@ def checkPATH():
     path_list = os.environ['PATH'].split(';') 
     for path in path_list:
         if os.path.exists(path + 'ffmpeg.exe') and os.path.exists(path + 'ffplay.exe') and os.path.exists(path + 'ffprobe.exe'):
-            print("All three ffmpeg packages are in the PATH.")
+            showCompletedDownloadWindow(pathresultsuccess)
         elif not os.path.exists(path + 'ffmpeg.exe') and os.path.exists(path + 'ffplay.exe') and os.path.exists(path + 'ffprobe.exe'):
-            print("One or more ffmpeg packages are missing in your PATH.")
+            showCompletedDownloadWindow(pathresultfail)
 
 def changeBackgroundImage():
     global bg_image, img_label
@@ -61,6 +61,8 @@ def changeBackgroundImage():
 
     filemenu = Menu(menu)
     filemenu.option_add('*tearOff', False)
+    filemenu.add_command(label="Create Folder Structure", command=createFolderStructure)
+    filemenu.add_separator()
     filemenu.add_command(label="Open Audio Folder", command=openAudioFolder)
     filemenu.add_command(label="Open Video Folder", command=openVideoFolder)
     filemenu.add_command(label="Open Playlist Audio Folder", command=openPlaylistAudioFolder)
@@ -71,27 +73,28 @@ def changeBackgroundImage():
 
     helpmenu = Menu(menu) #create help dropdown menu
     helpmenu.option_add('*tearOff', False)
-    helpmenu.add_command(label="About me", command=changeBackgroundImage)
+    helpmenu.add_command(label="About me")
     helpmenu.add_command(label="License")
     helpmenu.add_command(label="Check for updates") #add check for updates box to the help menu
-    helpmenu.add_command(label="Check PATH for dependencies")
+    helpmenu.add_command(label="Check PATH for dependencies", command=checkPATH)
+    helpmenu.add_command(label="Change background image", command=changeBackgroundImage)
     menu.add_cascade(label="Help", menu=helpmenu) #add submenu helpmenu to the main menu bar
 
     label1 = Label(root, text="Audio").grid(row=1, sticky="E")
-    entry1 = Entry(root, width=70).grid(row=1, column=1)
-    button1 = Button(root, image=download_button_tk).grid(row=1, column=2)
+    entry1 = Entry(root, width=70, textvariable=audiovar).grid(row=1, column=1)
+    button1 = Button(root, image=download_button_tk, command=lambda: downloadAudioHighestQuality()).grid(row=1, column=2)
 
     label2 = Label(root, text="Video").grid(row=2, sticky="E")
-    entry2 = Entry(root, width=70).grid(row=2, column=1)
-    button2 = Button(root, image=download_button_tk).grid(row=2, column=2)
+    entry2 = Entry(root, width=70, textvariable=videovar).grid(row=2, column=1)
+    button2 = Button(root, image=download_button_tk, command=lambda: downloadVideoHighestQuality()).grid(row=2, column=2)
 
     label3 = Label(root, text="Playlist Audio").grid(row=3, sticky="E")
-    entry3 = Entry(root, width=70).grid(row=3, column=1)
-    button3 = Button(root, image=download_button_tk).grid(row=3, column=2)
+    entry3 = Entry(root, width=70, textvariable=playlistaudiovar).grid(row=3, column=1)
+    button3 = Button(root, image=download_button_tk, command=lambda: downloadPlaylistAudio()).grid(row=3, column=2)
 
     label4 = Label(root, text="Playlist Video").grid(row=4, sticky="E")
-    entry4 = Entry(root, width=70).grid(row=4, column=1)
-    button4 = Button(root, image=download_button_tk).grid(row=4, column=2)
+    entry4 = Entry(root, width=70, textvariable=playlistvideovar).grid(row=4, column=1)
+    button4 = Button(root, image=download_button_tk, command=lambda: downloadPlaylistVideo()).grid(row=4, column=2)
 
     root.grid_rowconfigure(0, weight=1)
     root.grid_rowconfigure(5, weight=1)
@@ -105,11 +108,112 @@ def changeBackgroundImage():
 
     root.mainloop()
 
+def showCompletedDownloadWindow(output):
+    if output == result:
+        newWindow = Toplevel(root)
+        newWindow.geometry('180x50')
+        dltext = Text(newWindow, wrap=WORD)
+        dltext.insert(END, result)
+        dltext.config(state=DISABLED)
+        dltext.grid(row=1, column=1)
+    elif output == pathresultsuccess:
+        newWindow = Toplevel(root)
+        newWindow.geometry('340x50')
+        dltext = Text(newWindow, wrap=WORD)
+        dltext.insert(END, pathresultsuccess)
+        dltext.config(state=DISABLED)
+        dltext.grid(row=1, column=1)
+    elif output == pathresultfail:
+        newWindow = Toplevel(root)
+        newWindow.geometry('420x90')
+        dltext = Text(newWindow, wrap=WORD)
+        dltext.insert(END, pathresultfail)
+        dltext.config(state=DISABLED)
+        dltext.grid(row=1, column=1)
+
+def downloadAudioHighestQuality():
+    #This function only gives you the highest quality audio (aac, flac, mp3, m4a, opus, vorbis, or wav)
+    audio_link = audiovar.get()
+    link = '"' + str(audio_link) + '"'
+    if sys.platform == "win32":
+        subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[0], link), shell=True).wait()
+        audiovar.set("")
+        showCompletedDownloadWindow(result)
+    elif sys.platform == "linux":
+        subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[0], link), shell=True).wait()
+        audiovar.set("")
+        showCompletedDownloadWindow(result)
+    else:
+        audiovar.set("")
+        return "Something went wrong."
+
+
+def downloadVideoHighestQuality():
+    #This function gives you the highest quality video and audio seperately merged into a single file
+    #If best formats are not compatible with eachother it will merge into a .mkv
+    video_link = videovar.get()
+    link = '"' + str(video_link) + '"'
+    if "playlist" in link:
+        print("Invalid URL. Please do not supply this function with a direct playlist link.")
+        return 0
+    else:
+        if sys.platform == "win32":
+            subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[1], link), shell=True).wait()
+            videovar.set("")
+            showCompletedDownloadWindow(result)
+        elif sys.platform == "linux":
+            subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[1], link), shell=True).wait()
+            videovar.set("")
+            showCompletedDownloadWindow(result)
+        else:
+            return "Something went wrong."
+
+def downloadPlaylistAudio():
+    #This function downloads a playlist as the highest possible audio quality (can be webm, mp4 or mp3/WAV)
+    playlistaudio_link = playlistaudiovar.get()
+    link = '"' + str(playlistaudio_link) + '"'
+    if sys.platform == "win32":
+        subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[2], link), shell=True).wait()
+        playlistaudiovar.set("")
+        showCompletedDownloadWindow(result)
+    elif sys.platform == "linux":
+        subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[2], link), shell=True).wait()
+        playlistaudiovar.set("")
+        showCompletedDownloadWindow(result)
+    else:
+        return "Something went wrong"   
+
+def downloadPlaylistVideo():
+    #This function downloads a playlist as the highest possible video quality (can be webm, mp4 or RAW, mkv)
+    playlistvideo_link = playlistvideovar.get()
+    link = '"' + str(playlistvideo_link) + '"'
+    if sys.platform == "win32":
+        subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[3], link), shell=True).wait()
+        playlistvideovar.set("")
+        showCompletedDownloadWindow(result)
+    elif sys.platform == "linux":
+        subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[3], link), shell=True).wait()
+        playlistvideovar.set("")
+        showCompletedDownloadWindow(result)
+    else:
+        return "Something went wrong"
+    
 def quitprogram():
     root.destroy()
 
 root = Tk()
-checkPATH()
+
+result = "File done downloading."
+pathresultsuccess = "All three ffmpeg packages are in the PATH."
+pathresultfail = "One or more ffmpeg packages are missing in your PATH.\n\
+Please ensure you have the following packages:\nffmpeg.exe\nffplay.exe\nffprobe.exe"
+
+
+#variables for the Entry objects
+videovar = StringVar()
+audiovar = StringVar()
+playlistaudiovar = StringVar()
+playlistvideovar = StringVar()
 
 #download button code
 download_button_image = Image.open("images/download_button.png")
@@ -127,6 +231,8 @@ menu.option_add('*tearOff', False) #remove ----- in menu
 
 filemenu = Menu(menu)
 filemenu.option_add('*tearOff', False)
+filemenu.add_command(label="Create Folder Structure", command=createFolderStructure)
+filemenu.add_separator()
 filemenu.add_command(label="Open Audio Folder", command=openAudioFolder)
 filemenu.add_command(label="Open Video Folder", command=openVideoFolder)
 filemenu.add_command(label="Open Playlist Audio Folder", command=openPlaylistAudioFolder)
@@ -137,27 +243,28 @@ menu.add_cascade(label="File", menu=filemenu)
 
 helpmenu = Menu(menu) #create help dropdown menu
 helpmenu.option_add('*tearOff', False)
-helpmenu.add_command(label="About me", command=changeBackgroundImage)
+helpmenu.add_command(label="About me")
 helpmenu.add_command(label="License")
 helpmenu.add_command(label="Check for updates") #add check for updates box to the help menu
-helpmenu.add_command(label="Check PATH for dependencies")
+helpmenu.add_command(label="Check PATH for dependencies", command=checkPATH)
+helpmenu.add_command(label="Change background image", command=changeBackgroundImage)
 menu.add_cascade(label="Help", menu=helpmenu) #add submenu helpmenu to the main menu bar
 
 label1 = Label(root, text="Audio").grid(row=1, sticky="E")
-entry1 = Entry(root, width=70).grid(row=1, column=1)
-button1 = Button(root, image=download_button_tk).grid(row=1, column=2)
+entry1 = Entry(root, width=70, textvariable=audiovar).grid(row=1, column=1)
+button1 = Button(root, image=download_button_tk, command=lambda: downloadAudioHighestQuality()).grid(row=1, column=2)
 
 label2 = Label(root, text="Video").grid(row=2, sticky="E")
-entry2 = Entry(root, width=70).grid(row=2, column=1)
-button2 = Button(root, image=download_button_tk).grid(row=2, column=2)
+entry2 = Entry(root, width=70, textvariable=videovar).grid(row=2, column=1)
+button2 = Button(root, image=download_button_tk, command=lambda: downloadVideoHighestQuality()).grid(row=2, column=2)
 
 label3 = Label(root, text="Playlist Audio").grid(row=3, sticky="E")
-entry3 = Entry(root, width=70).grid(row=3, column=1)
-button3 = Button(root, image=download_button_tk).grid(row=3, column=2)
+entry3 = Entry(root, width=70, textvariable=playlistaudiovar).grid(row=3, column=1)
+button3 = Button(root, image=download_button_tk, command=lambda: downloadPlaylistAudio()).grid(row=3, column=2)
 
 label4 = Label(root, text="Playlist Video").grid(row=4, sticky="E")
-entry4 = Entry(root, width=70).grid(row=4, column=1)
-button4 = Button(root, image=download_button_tk).grid(row=4, column=2)
+entry4 = Entry(root, width=70, textvariable=playlistvideovar).grid(row=4, column=1)
+button4 = Button(root, image=download_button_tk, command=lambda: downloadPlaylistVideo()).grid(row=4, column=2)
 
 root.grid_rowconfigure(0, weight=1)
 root.grid_rowconfigure(5, weight=1)

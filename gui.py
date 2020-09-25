@@ -5,24 +5,19 @@ from tkinter.ttk import *
 from PIL import ImageTk, Image
 import subprocess, os, time
 from time import sleep
-
-'''
-1. Make GUI buttons corresponding to each function, and when the button is pressed a box will appear for you to paste your link into it.
-   Once the link is pasted, you press a button (or press enter) and the box will give you a loading bar of your progress before showing "Success" or "Failure" and exiting out.
-2. Make button to check for/download dependencies (youtube-dl, ffmpeg) and check they are in PATH
-3. Make a button to open your download folders in Windows Explorer
-'''
+from shutil import copy
 
 result = "File done downloading."
+updatesuccess = "Requirements successfully updated."
 pathresultsuccess = "All three ffmpeg packages are in the PATH."
 pathresultfail = "One or more ffmpeg packages are missing in your PATH.\n\
 Please ensure you have the following packages:\nffmpeg.exe\nffplay.exe\nffprobe.exe"
-updatesuccess = "Requirements successfully updated."
 
 user = os.getlogin()
 unix_path = "/home/" + user + "/ytdl"
 win_path = "C:/Users/" + user + "/ytdl"
 folders = ['/audio-hq', '/video-hq', '/playlists-audio', '/playlists-video', '/streams', '/mp3', '/wav']
+bg_path = "images/"
 
 def createFolderStructure():
 	if sys.platform == "win32":
@@ -81,7 +76,14 @@ def checkPATH():
 
 def changeBackgroundImage():
 	global bg_image, img_label
+
 	root.filename = filedialog.askopenfilename(initialdir=f"{win_path + 'Pictures'}", title="File Explorer", filetypes=(("JPEG files", "*.jpeg *.jpg"), ("PNG files", "*.png"), ("All files", "*")))
+	actual_file_name = os.path.split(root.filename)
+
+	with open("images/background.txt", "w") as f:
+		f.write(actual_file_name[1])
+		copy(root.filename, bg_path)
+
 	photo = Image.open(f"{root.filename}")
 	new_photo = photo.resize((640,480), Image.ANTIALIAS)
 	bg_image = ImageTk.PhotoImage(new_photo)
@@ -136,28 +138,7 @@ def changeBackgroundImage():
 	root.mainloop()
 
 def showCompletedDownloadWindow(output):
-	if output == result:
-		newWindow = Toplevel(root)
-		newWindow.geometry('180x50')
-		dltext = Text(newWindow, wrap=WORD)
-		dltext.insert(END, result)
-		dltext.config(state=DISABLED)
-		dltext.grid(row=1, column=1)
-	elif output == pathresultsuccess:
-		newWindow = Toplevel(root)
-		newWindow.geometry('340x50')
-		dltext = Text(newWindow, wrap=WORD)
-		dltext.insert(END, pathresultsuccess)
-		dltext.config(state=DISABLED)
-		dltext.grid(row=1, column=1)
-	elif output == pathresultfail:
-		newWindow = Toplevel(root)
-		newWindow.geometry('420x90')
-		dltext = Text(newWindow, wrap=WORD)
-		dltext.insert(END, pathresultfail)
-		dltext.config(state=DISABLED)
-		dltext.grid(row=1, column=1)
-	elif output == updatesuccess:
+	if output == updatesuccess:
 		newWindow = Toplevel(root)
 		newWindow.geometry('420x90')
 		dltext = Text(newWindow, wrap=WORD)
@@ -250,10 +231,20 @@ download_button_resize = download_button_image.resize((15,15), Image.ANTIALIAS)
 download_button_tk = ImageTk.PhotoImage(download_button_resize)
 
 #initial background image code
-bg_image = Image.open("images/bg1.jpg")
-bg_image_2 = bg_image.resize((640, 480), Image.ANTIALIAS)
-bg_image_resized = ImageTk.PhotoImage(bg_image_2)
-img_label = Label(root, image=bg_image_resized, relief=SOLID).place(relwidth=1, relheight=1)
+with open("images/background.txt", "r") as f:
+	global background_image
+	background_image = f.readline()
+
+try:
+	bg_image = Image.open(f"images/{background_image}")
+	bg_image_2 = bg_image.resize((640, 480), Image.ANTIALIAS)
+	bg_image_resized = ImageTk.PhotoImage(bg_image_2)
+	img_label = Label(root, image=bg_image_resized, relief=SOLID).place(relwidth=1, relheight=1)
+except:
+	bg_image = Image.open(f"images/bg1.jpg")
+	bg_image_2 = bg_image.resize((640, 480), Image.ANTIALIAS)
+	bg_image_resized = ImageTk.PhotoImage(bg_image_2)
+	img_label = Label(root, image=bg_image_resized, relief=SOLID).place(relwidth=1, relheight=1)
 
 menu = Menu(root) #create main menu, in which seperate submenus exist
 menu.option_add('*tearOff', False) #remove ----- in menu

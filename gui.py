@@ -18,6 +18,7 @@ unix_path = "/home/" + user + "/ytdl"
 win_path = "C:/Users/" + user + "/ytdl"
 folders = ['/audio-hq', '/video-hq', '/playlists-audio', '/playlists-video', '/streams', '/mp3', '/wav']
 bg_path = "images/"
+win_picture_path ="C:/Users/" + user + "/Pictures"
 
 def createFolderStructure():
 	if sys.platform == "win32":
@@ -77,17 +78,20 @@ def checkPATH():
 def changeBackgroundImage():
 	global bg_image, img_label
 
-	root.filename = filedialog.askopenfilename(initialdir=f"{win_path + 'Pictures'}", title="File Explorer", filetypes=(("JPEG files", "*.jpeg *.jpg"), ("PNG files", "*.png"), ("All files", "*")))
+	root.filename = filedialog.askopenfilename(initialdir=f"{win_picture_path}", title="File Explorer", filetypes=(("JPEG files", "*.jpeg *.jpg"), ("PNG files", "*.png"), ("All files", "*")))
 	actual_file_name = os.path.split(root.filename)
 
-	with open("images/background.txt", "w") as f:
-		f.write(actual_file_name[1])
-		copy(root.filename, bg_path)
-
-	photo = Image.open(f"{root.filename}")
-	new_photo = photo.resize((640,480), Image.ANTIALIAS)
-	bg_image = ImageTk.PhotoImage(new_photo)
-	img_label = Label(root, image=bg_image, relief=SOLID).place(relwidth=1, relheight=1)
+	try:
+		with open("images/background.txt", "w") as f:
+			f.write(actual_file_name[1])
+			copy(root.filename, bg_path)
+	
+		photo = Image.open(f"{root.filename}")
+		new_photo = photo.resize((640,480), Image.ANTIALIAS)
+		bg_image = ImageTk.PhotoImage(new_photo)
+		img_label = Label(root, image=bg_image, relief=SOLID).place(relwidth=1, relheight=1)
+	except:
+		pass
 
 	menu = Menu(root) #create main menu, in which seperate submenus exist
 	menu.option_add('*tearOff', False) #remove ----- in menu

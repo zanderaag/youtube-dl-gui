@@ -131,16 +131,6 @@ def createWindow(root):
 
 	root.mainloop()
 
-def showCompletedDownloadWindow(output):
-	#this function is deprecated but i am keeping it in the source code anyway. deal with it.
-	if output == updatesuccess:
-		newWindow = Toplevel(root)
-		newWindow.geometry('420x90')
-		dltext = Text(newWindow, wrap=WORD)
-		dltext.insert(END, updatesuccess)
-		dltext.config(state=DISABLED)
-		dltext.grid(row=1, column=1)
-
 def downloadAudioHighestQuality():
 	#This function only gives you the highest quality audio (aac, flac, mp3, m4a, opus, vorbis, or wav)
 	audio_link = audiovar.get()

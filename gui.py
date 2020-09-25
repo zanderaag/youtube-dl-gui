@@ -9,9 +9,9 @@ from shutil import copy
 
 result = "File done downloading."
 updatesuccess = "Requirements successfully updated."
-pathresultsuccess = "All three ffmpeg packages are in the PATH."
+pathresultsuccess = "All three ffmpeg packages are in the following PATH."
 pathresultfail = "One or more ffmpeg packages are missing in your PATH.\n\
-Please ensure you have the following packages:\nffmpeg.exe\nffplay.exe\nffprobe.exe"
+Please ensure you have the following packages and you place them in one of the following folders:\nffmpeg.exe\nffplay.exe\nffprobe.exe\n"
 
 user = os.getlogin()
 unix_path = "/home/" + user + "/ytdl"
@@ -33,47 +33,39 @@ def createFolderStructure():
 				os.mkdir(win_path + fol)
 				print("{}{} has been created".format(win_path, fol))
 			else:
-				# print(f"Sub folder {win_path + fol} present. Continuing...")
 				continue
 
 def openAudioFolder():
-	if sys.platform == "win32":
-		subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[0])}')
-	elif sys.platform == "linux":
-		subprocess.Popen(f'explorer {os.path.realpath(unix_path + folders[0])}')
+	subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[0])}')
 
 def openVideoFolder():
-	if sys.platform == "win32":
-		subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[1])}')
-	elif sys.platform == "linux":
-		subprocess.Popen(f'explorer {os.path.realpath(unix_path + folders[1])}')
+	subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[1])}')
 
 def openPlaylistAudioFolder():
-	if sys.platform == "win32":
-		subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[2])}')
-	elif sys.platform == "linux":
-		subprocess.Popen(f'explorer {os.path.realpath(unix_path + folders[2])}')
+	subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[2])}')
 
 def openPlaylistVideoFolder():
-	if sys.platform == "win32":
-		subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[3])}')
-	elif sys.platform == "linux":
-		subprocess.Popen(f'explorer {os.path.realpath(unix_path + folders[3])}')
+	subprocess.Popen(f'explorer {os.path.realpath(win_path + folders[3])}')
 
 def checkUpdates():
 	updatepip = subprocess.Popen("python -m pip install --upgrade pip", shell=True)
 	subprocess.Popen("pip install --upgrade youtube-dl", shell=True)
 	subprocess.Popen("pip install --upgrade Pillow", shell=True)
-	sleep(3)
-	showCompletedDownloadWindow(updatesuccess)
 
 def checkPATH():
 	path_list = os.environ['PATH'].split(';') 
 	for path in path_list:
 		if os.path.exists(path + 'ffmpeg.exe') and os.path.exists(path + 'ffplay.exe') and os.path.exists(path + 'ffprobe.exe'):
-			showCompletedDownloadWindow(pathresultsuccess)
-		elif not os.path.exists(path + 'ffmpeg.exe') and os.path.exists(path + 'ffplay.exe') and os.path.exists(path + 'ffprobe.exe'):
-			showCompletedDownloadWindow(pathresultfail)
+			print(pathresultsuccess)
+			print(path + 'ffmpeg.exe')
+			print(path + 'ffplay.exe')
+			print(path + 'ffprobe.exe')
+			break
+		elif not os.path.exists(path + 'ffmpeg.exe') or os.path.exists(path + 'ffplay.exe') or os.path.exists(path + 'ffprobe.exe'):
+			print(pathresultfail)
+			for x in path_list:
+				print(x)
+			break
 
 def changeBackgroundImage():
 	global bg_image, img_label
@@ -142,6 +134,7 @@ def changeBackgroundImage():
 	root.mainloop()
 
 def showCompletedDownloadWindow(output):
+	#this function is deprecated but i am keeping it in the source code anyway. deal with it.
 	if output == updatesuccess:
 		newWindow = Toplevel(root)
 		newWindow.geometry('420x90')
@@ -157,11 +150,9 @@ def downloadAudioHighestQuality():
 	if sys.platform == "win32":
 		subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[0], link), shell=True).wait()
 		audiovar.set("")
-		# showCompletedDownloadWindow(result)
 	elif sys.platform == "linux":
 		subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[0], link), shell=True).wait()
 		audiovar.set("")
-		# showCompletedDownloadWindow(result)
 	else:
 		audiovar.set("")
 		return "Something went wrong."
@@ -178,11 +169,9 @@ def downloadVideoHighestQuality():
 		if sys.platform == "win32":
 			subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[1], link), shell=True).wait()
 			videovar.set("")
-			# showCompletedDownloadWindow(result)
 		elif sys.platform == "linux":
 			subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best --no-playlist -o "{}/%(title)s.%(ext)s" {}'.format(win_path + folders[1], link), shell=True).wait()
 			videovar.set("")
-			# showCompletedDownloadWindow(result)
 		else:
 			return "Something went wrong."
 
@@ -193,11 +182,9 @@ def downloadPlaylistAudio():
 	if sys.platform == "win32":
 		subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[2], link), shell=True).wait()
 		playlistaudiovar.set("")
-		# showCompletedDownloadWindow(result)
 	elif sys.platform == "linux":
 		subprocess.Popen('youtube-dl -i -f bestaudio --extract-audio -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[2], link), shell=True).wait()
 		playlistaudiovar.set("")
-		# showCompletedDownloadWindow(result)
 	else:
 		return "Something went wrong"   
 
@@ -208,11 +195,9 @@ def downloadPlaylistVideo():
 	if sys.platform == "win32":
 		subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[3], link), shell=True).wait()
 		playlistvideovar.set("")
-		# showCompletedDownloadWindow(result)
 	elif sys.platform == "linux":
 		subprocess.Popen('youtube-dl -i -f bestvideo+bestaudio/best -o "{}/%(playlist)s/%(title)s.%(ext)s" {}'.format(win_path + folders[3], link), shell=True).wait()
 		playlistvideovar.set("")
-		# showCompletedDownloadWindow(result)
 	else:
 		return "Something went wrong"
 	

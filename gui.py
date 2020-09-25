@@ -53,19 +53,25 @@ def checkUpdates():
 	subprocess.Popen("pip install --upgrade Pillow", shell=True)
 
 def checkPATH():
-	path_list = os.environ['PATH'].split(';') 
+	path_list = os.environ['PATH'].split(';')
+	count=0
 	for path in path_list:
-		if os.path.exists(path + 'ffmpeg.exe') and os.path.exists(path + 'ffplay.exe') and os.path.exists(path + 'ffprobe.exe'):
+		if os.path.exists(path + '\\ffmpeg.exe') and os.path.exists(path + '\\ffplay.exe') and os.path.exists(path + '\\ffprobe.exe'):
 			print(pathresultsuccess)
 			print(path + 'ffmpeg.exe')
 			print(path + 'ffplay.exe')
 			print(path + 'ffprobe.exe')
+			count=0
 			break
-		elif not os.path.exists(path + 'ffmpeg.exe') or os.path.exists(path + 'ffplay.exe') or os.path.exists(path + 'ffprobe.exe'):
-			print(pathresultfail)
-			for x in path_list:
-				print(x)
-			break
+		elif not os.path.exists(path + '\\ffmpeg.exe') or os.path.exists(path + '\\ffplay.exe') or os.path.exists(path + '\\ffprobe.exe'):
+			count += 1
+	if count > 0:
+		print(pathresultfail)
+		for x in path_list:
+			print(x)
+	else:
+		pass
+
 
 def changeBackgroundImage():
 	global bg_image, img_label

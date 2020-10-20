@@ -1,3 +1,5 @@
+#author test for git on ubuntu
+
 import subprocess, os, time
 from tkinter import *
 from tkinter import filedialog
